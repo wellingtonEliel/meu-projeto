@@ -1,0 +1,129 @@
+<!-- src/public/index.html -->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Conta</title>
+    <style>
+        /* Estilos básicos */
+    </style>
+</head>
+<body>
+    <h1>Criação de Conta</h1>
+    <form id="create-account-form">
+        <input type="text" id="name" placeholder="Nome" required><br>
+        <input type="text" id="cpf" placeholder="CPF" required><br>
+        <input type="text" id="phone" placeholder="Telefone" required><br>
+        <input type="email" id="email" placeholder="E-mail" required><br>
+        <input type="password" id="password" placeholder="Senha" required><br>
+        <select id="user-type" required>
+            <option value="cliente">Cliente</option>
+            <option value="funcionario">Funcionário</option>
+        </select><br>
+        <button type="submit">Criar Conta</button>
+    </form>
+
+    <h2>Tabelas de Funcionários e Clientes</h2>
+    <div id="tables-container" style="display:none;">
+        <table id="funcionarios-table">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>CPF</th>
+                    <th>Telefone</th>
+                    <th>E-mail</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <table id="clientes-table">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>CPF</th>
+                    <th>Telefone</th>
+                    <th>E-mail</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
+
+    <script>
+        // Função para carregar os dados de funcionários e clientes
+        async function loadAccounts() {
+            try {
+                const response = await fetch('http://127.0.0.1:3000/get-accounts');
+                const textResponse = await response.text(); // Recebe a resposta como texto
+                console.log('Resposta recebida:', textResponse); // Log da resposta para depuração
+
+                // Tenta converter a resposta para JSON
+                const result = JSON.parse(textResponse);
+
+                if (result.success) {
+                    const funcionariosTable = document.getElementById('funcionarios-table').getElementsByTagName('tbody')[0];
+                    const clientesTable = document.getElementById('clientes-table').getElementsByTagName('tbody')[0];
+
+                    // Limpar tabelas antes de adicionar novos dados
+                    funcionariosTable.innerHTML = '';
+                    clientesTable.innerHTML = '';
+
+                    // Preencher tabela de funcionários
+                    result.data.funcionarios.forEach(funcionario => {
+                        const row = funcionariosTable.insertRow();
+                        row.innerHTML = `<td>${funcionario.name}</td><td>${funcionario.cpf}</td><td>${funcionario.phone}</td><td>${funcionario.email}</td>`;
+                    });
+
+                    // Preencher tabela de clientes
+                    result.data.clientes.forEach(cliente => {
+                        const row = clientesTable.insertRow();
+                        row.innerHTML = `<td>${cliente.name}</td><td>${cliente.cpf}</td><td>${cliente.phone}</td><td>${cliente.email}</td>`;
+                    });
+
+                    // Mostrar as tabelas
+                    document.getElementById('tables-container').style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Erro ao carregar os dados:', error);
+            }
+        }
+
+        // Função para enviar os dados do formulário e criar a conta
+        document.getElementById('create-account-form').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const data = {
+                name: document.getElementById('name').value,
+                cpf: document.getElementById('cpf').value,
+                phone: document.getElementById('phone').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                userType: document.getElementById('user-type').value
+            };
+
+            try {
+                const response = await fetch('http://127.0.0.1:3000/create-account', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+
+                const result = await response.json();
+                if (result.success) {
+                    alert('Conta criada com sucesso!');
+                    loadAccounts(); // Atualiza as tabelas após a criação
+                } else {
+                    alert('Erro ao criar conta!');
+                }
+            } catch (error) {
+                console.error('Erro na requisição:', error);
+            }
+        });
+
+        // Carregar os dados ao inicializar a página
+        loadAccounts();
+    </script>
+</body>
+</html>
