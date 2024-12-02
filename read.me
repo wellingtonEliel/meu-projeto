@@ -1,0 +1,35 @@
+A3 - Projeto Prático Final Desenvolvimento Web
+Nomes: Jediel Eliézer Santos de Oliveira 
+             Wellington Eliel Santos de Oliveira 
+
+Criação de um sistema para controle de Ordens de serviço 
+
+Detalhes Sobre o Tema Escolhido
+A ideia do projeto é criar um sistema para controle de ordens de serviço simulando a situação de uma assistência técnica, a tela inicial exige login do usuário, se qualificando como funcionário ou como cliente no sistema, possui criptografia de senhas e controle de sessões.
+Funcionalidades Implementadas
+
+O Funcionário pode inserir e iniciar uma ordem de serviço, efetuando o cadastro da mesma e das informações do produto cadastrado. Pode atualizar a ordem de serviço para sua situação atual definindo como em andamento, em bancada, orçamento autorizado ou concluída.
+Toda ordem de serviço possui apenas um cliente como interessado, as funções do cliente incluem visualizar a ordem de serviço cujo está endereçado, para ficar ciente da situação atual da mesma e autorizar ou negar o orçamento anexado na ordem para que possa dar andamento na conclusão do serviço.
+Tecnologias Utilizadas
+
+Utilizamos o SQLite para inserção e controle do banco de dados e criamos o site por meio do VSCode com html, CSS, node.JS e os pacotes:
+•	Bcryptjs: Biblioteca para hash de senhas. 
+
+•	Body-parser: Middleware para analisar corpos de requisições HTTP. 
+
+•	Cors: Middleware para habilitar o CORS (Cross-Origin Resource Sharing). 
+
+•	Express: Framework para construção de servidores HTTP em Node.js. 
+
+•	Jsonwebtoken: Biblioteca para trabalhar com tokens JWT (JSON Web Tokens). 
+
+•	Sqlite3: Driver SQLite3 para Node.js, usado para interação com bancos de dados SQLite.
+
+Instruções para Instalação e Execução do Projeto
+Construímos todo o código por meio do VSCode para abrir e executar com facilidade, já quanto a execução do projeto, seria necessário criar um cadastro para cliente e um para funcionário, para que se consiga observar na prática a interação de ambos por meio da ordem de serviço e como cada cliente só consegue acessar as ordens respectivas ao seu cadastro e somente pode alterar o status do orçamento para aprovado ou recusado. Cabe ao funcionário detalhar e descrever todas as informações para facilitar o acesso e o entendimento do cliente.
+Banco de Dados
+Nosso banco de dados inclui 3 tabelas, sendo elas funcionário, cliente e ordem de serviço, abaixo listo cada item com suas respectivas chaves primárias e estrangeiras.
+ 
+Melhorias Futuras
+Por experiência própria, o projeto seria de grande utilidade em uma loja real, pois facilitaria a comunicação entre a loja e o cliente deixando todo o processo da assistência ao equipamento completamente transparente e acessível, uma implementação futura adequada seria um meio de transmitir essas informações por meio do whatsapp de forma automatizada de acordo com as atualizações realizadas pelo funcionário ao longo do processo. Outra implementação futura que idealizaria o projeto para aplicação prática seria uma forma de realizar a cobrança do adiantamento pós autorização do orçamento, como forma de garantia de pagamento pré conserto ou encomendas de peças. Também seria legal a atualização da descrição do problema com a inserção de imagens ou vídeos demonstrando o mesmo com clareza, para não haver dúvidas quanto ao andamento do processo do conserto, todas as implementações futuras complementariam a efetividade prática do site, o tornando ideal para aplicação.
+
