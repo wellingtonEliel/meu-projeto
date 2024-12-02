@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Editar Ordem de Serviço</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Gestão de Ordens de Serviço</h1>
+        <nav>
+            <ul>
+                <li><a href="funcionario.html">Início</a></li>
+                <li><a href="/logout">Sair</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section>
+            <h2>Editar Ordem de Serviço</h2>
+            <form id="editOrderForm">
+                <input type="hidden" id="orderId">
+
+                <div>
+                    <label for="editDescricao">Descrição da Ordem:</label>
+                    <input type="text" id="editDescricao" name="descricao" required>
+                </div>
+
+                <div>
+                    <label for="editStatus">Status:</label>
+                    <select id="editStatus" name="status" required>
+                        <option value="pendente">Pendente</option>
+                        <option value="em andamento">Em Andamento</option>
+                        <option value="aguardando autorizacao">Aguardando Autorizacao</option>
+                        <option value="autorizado">Autorizado, realizando manutencao</option>
+                        <option value="concluída">Concluída</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label for="editEquipamentos">Equipamentos:</label>
+                    <input type="text" id="editEquipamentos" name="equipamentos" required>
+                </div>
+
+                <div>
+                    <label for="editDescricaoProblema">Descrição do Problema:</label>
+                    <input type="text" id="editDescricaoProblema" name="descricaoProblema">
+                </div>
+
+                <div>
+                    <label for="editDescricaoServico">Descrição do Serviço:</label>
+                    <input type="text" id="editDescricaoServico" name="descricaoServico">
+                </div>
+
+                <div>
+                    <label for="editValorTotal">Valor Total:</label>
+                    <input type="number" id="editValorTotal" name="valorTotal" step="0.01" min="0" required>
+                </div>
+
+                <input type="hidden" id="editFuncionarioCpf" name="funcionario_cpf">
+                <input type="hidden" id="editClienteCpf" name="cliente_cpf">
+
+                <button type="submit">Salvar Alterações</button>
+            </form>
+        </section>
+    </main>
+
+    <script>
+        const API_URL = 'http://127.0.0.1:3000'; // Defina o URL da sua API
+        
+        document.addEventListener("DOMContentLoaded", () => {
+            const orderId = new URLSearchParams(window.location.search).get("id");
+            if (orderId) {
+                loadOrderData(orderId);
+            } else {
+                alert("ID da ordem de serviço não encontrado.");
+            }
+        });
+        
+        // Função para carregar os dados da ordem de serviço
+        function loadOrderData(orderId) {
+            fetch(`${API_URL}/get-order/${orderId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success && data.data) {
+                    // Preencher o formulário com os dados da ordem
+                    document.getElementById("orderId").value = data.data.id;
+                    document.getElementById("editDescricao").value = data.data.descricao;
+                    document.getElementById("editStatus").value = data.data.status;
+                    document.getElementById("editEquipamentos").value = data.data.equipamentos;
+                    document.getElementById("editDescricaoProblema").value = data.data.descricao_problema || '';
+                    document.getElementById("editDescricaoServico").value = data.data.descricao_servico || '';
+                    document.getElementById("editValorTotal").value = data.data.valor_total;
+                    
+                    // Preencher os CPFs do funcionário e cliente
+                    document.getElementById("editFuncionarioCpf").value = data.data.funcionario_cpf;
+                    document.getElementById("editClienteCpf").value = data.data.cliente_cpf;
+                } else {
+                    console.error("Erro ao carregar dados da ordem:", data.message || "Dados não encontrados.");
+                    alert("Erro ao carregar dados da ordem de serviço.");
+                }
+            })
+            .catch(error => {
+                console.error("Erro ao carregar dados da ordem:", error);
+                alert("Erro ao carregar dados da ordem de serviço.");
+            });
+        }
+    
+        // Enviar as alterações da ordem para o servidor
+        document.getElementById("editOrderForm").addEventListener("submit", event => {
+            event.preventDefault();
+    
+            const ordem = {
+                id: document.getElementById("orderId").value,
+                descricao: document.getElementById("editDescricao").value,
+                status: document.getElementById("editStatus").value,
+                equipamentos: document.getElementById("editEquipamentos").value,
+                descricao_problema: document.getElementById("editDescricaoProblema").value || null,
+                descricao_servico: document.getElementById("editDescricaoServico").value || null,
+                valor_total: parseFloat(document.getElementById("editValorTotal").value) || null,
+                funcionario_cpf: document.getElementById("editFuncionarioCpf").value,
+                cliente_cpf: document.getElementById("editClienteCpf").value
+            };
+    
+            // Validação para garantir que o valor total é válido
+            if (isNaN(ordem.valor_total) || ordem.valor_total <= 0) {
+                alert("O valor total deve ser um número positivo.");
+                return;
+            }
+    
+            fetch(`${API_URL}/update-order`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(ordem)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Ordem de serviço atualizada com sucesso!");
+                } else {
+                    console.error("Erro ao carregar dados da ordem:", data.message);
+                    alert("Erro ao atualizar a ordem de serviço.");
+                }
+            })
+            .catch(error => {
+                console.error("Erro na requisição:", error);
+                alert("Ocorreu um erro ao atualizar a ordem de serviço.");
+            });
+        });
+    </script>
+</body>
+</html>

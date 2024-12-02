@@ -3,9 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Página Cliente</title>
+    <title>Ordens de Serviço - Cliente</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Bem-vindo à página do Cliente</h1>
+    <header>
+        <h1>Gestão de Ordens de Serviço</h1>
+        <nav>
+            <ul>
+                <li><a href="/dashboard">Início</a></li>
+                <li><a href="/ordens-servico">Ordens de Serviço</a></li>
+                <li><a href="/logout">Sair</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section>
+            <h2>Minhas Ordens de Serviço</h2>
+            <div id="ordersList">
+                <!-- As ordens serão carregadas aqui -->
+            </div>
+            <div id="ordersContainer"></div>
+        </section>
+    </main>
+
+    <script>
+        // Função para recuperar o CPF da URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const cpf = urlParams.get('id');  // Aqui, 'id' é o parâmetro da URL, que representa o CPF do cliente
+
+        if (cpf) {
+            console.log("CPF do cliente:", cpf);
+            // Agora você pode usar o CPF para fazer a requisição e carregar as ordens do cliente
+            loadClientOrders(cpf);
+        } else {
+            console.log("CPF não encontrado na URL");
+        }
+
+        // Função para carregar as ordens de serviço do cliente
+        function loadClientOrders(cpf) {
+            const API_URL = 'http://127.0.0.1:3000';
+            const ordersContainer = document.getElementById("ordersContainer");
+            ordersContainer.innerHTML = ""; // Limpar conteúdo anterior
+
+            fetch(`${API_URL}/get-orders-by-cpf/${cpf}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Erro na requisição, status: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        data.data.forEach(order => {
+                            const orderElement = document.createElement("div");
+                            orderElement.innerHTML = `
+                                <p>--------------</p>
+                                <p><strong>Status:</strong> ${order.status}</p>
+                                <p><strong>Equipamentos:</strong> ${order.equipamentos}</p>
+                                <p><strong>Descrição do Problema:</strong> ${order.descricao_problema}</p>
+                                <p><strong>Descrição do Serviço:</strong> ${order.descricao_servico}</p>
+                                <p><strong>Valor Total:</strong> R$ ${order.valor_total}</p>
+                            `;
+
+                            // Verificar se o status é "Aguardando Autorização"
+                            if (order.status === "aguardando autorizacao") {
+                                const approveButton = document.createElement("button");
+                                approveButton.textContent = "Aprovar";
+                                approveButton.onclick = () => updateOrderStatus(order.id, 'Autorizado, realizando manutencao'); // Passar o order.id aqui
+
+                                const rejectButton = document.createElement("button");
+                                rejectButton.textContent = "Reprovar";
+                                rejectButton.onclick = () => updateOrderStatus(order.id, 'Concluída'); // Passar o order.id aqui
+
+                                orderElement.appendChild(approveButton);
+                                orderElement.appendChild(rejectButton);
+
+                            }
+
+                            ordersContainer.appendChild(orderElement);
+                        });
+                    } else {
+                        ordersContainer.innerHTML = `<p>${data.message}</p>`;
+                    }
+                })
+                .catch(error => {
+                    console.error("Erro ao carregar as ordens:", error);
+                    ordersContainer.innerHTML = "<p>Ocorreu um erro ao carregar as ordens de serviço.</p>";
+                });
+        }
+
+        // Função para atualizar o status da ordem de serviço
+        function updateOrderStatus(orderId, newStatus) {
+            const API_URL = 'http://127.0.0.1:3000';  
+            fetch(`${API_URL}/update-order/${orderId}`, { // Agora, usamos o orderId passado diretamente
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ status: newStatus })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert("Status atualizado com sucesso!");
+                    loadClientOrders(cpf); // Recarregar as ordens após a atualização
+                } else {
+                    alert("Erro ao atualizar o status.");
+                }
+            })
+            .catch(error => {
+                console.error("Erro ao atualizar o status:", error);
+                alert("Ocorreu um erro ao atualizar o status.");
+            });
+        }
+    </script>
 </body>
 </html>

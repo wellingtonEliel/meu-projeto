@@ -67,6 +67,7 @@
             <button type="submit">Entrar</button>
         </form>
         <div id="errorMessage" class="error"></div>
+        <div id="cpfMessage" class="error" style="display:none;"></div>
         <div class="link-container">
             <p>Não tem uma conta? <a href="cadastro.html">Cadastre-se</a></p>
         </div>
@@ -79,6 +80,7 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
             const errorMessage = document.getElementById('errorMessage');
+            const cpfMessage = document.getElementById('cpfMessage');  // Elemento para exibir o CPF
             
             try {
                 const response = await fetch('http://127.0.0.1:3000/login', {
@@ -94,8 +96,12 @@
                 if (result.success) {
                     if (result.userType === 'funcionario') {
                         window.location.href = 'funcionario.html';  // Redireciona para a página do funcionário
-                    } else {
-                        window.location.href = 'cliente.html';  // Redireciona para a página do cliente
+                    } else if (result.userType === 'cliente') {
+                        const cpf = result.cpf; // Recupera o CPF do cliente
+                        //cpfMessage.textContent = "CPF do cliente: " + cpf; // Exibe o CPF
+                        //cpfMessage.style.display = "block"; // Torna o elemento visível
+                        window.location.href = `cliente.html?id=${cpf}`; // Redireciona para a página do cliente com o CPF na URL
+
                     }
                 } else {
                     errorMessage.textContent = result.message;

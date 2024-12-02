@@ -3,9 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Página Funcionário</title>
+    <title>Dashboard Funcionário</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Bem-vindo à página do Funcionário</h1>
+    <header>
+        <h1>Gestão de Ordens de Serviço</h1>
+        <nav>
+            <ul>
+                <li><a href="/dashboard">Início</a></li>
+                <li><a href="/ordens-servico">Ordens de Serviço</a></li>
+                <li><a href="/logout">Sair</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <section>
+            <h2>Criar Nova Ordem de Serviço</h2>
+            <form id="createOrderForm">
+                <div>
+                    <label for="descricao">Descrição da Ordem:</label>
+                    <input type="text" id="descricao" name="descricao" required>
+                </div>
+                <div>
+                    <label for="status">Status:</label>
+                    <select id="status" name="status" required>
+                        <option value="pendente">Pendente</option>
+                        <option value="em andamento">Em Andamento</option>
+                        <option value="aguardando autorizacao">Aguardando Autorizacao</option>
+                        <option value="autorizado">Autorizado, realizando manutencao</option>
+                        <option value="concluída">Concluída</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="equipamentos">Equipamentos:</label>
+                    <input type="text" id="equipamentos" name="equipamentos" required>
+                </div>
+                <div>
+                    <label for="descricaoProblema">Descrição do Problema:</label>
+                    <input type="text" id="descricaoProblema" name="descricaoProblema">
+                </div>
+                <div>
+                    <label for="descricaoServico">Descrição do Serviço:</label>
+                    <input type="text" id="descricaoServico" name="descricaoServico">
+                </div>
+                <div>
+                    <label for="valorTotal">Valor Total:</label>
+                    <input type="number" id="valorTotal" name="valorTotal" step="0.01" min="0">
+                </div>
+                <div>
+                    <label for="funcionarioCpf">Funcionário:</label>
+                    <select id="funcionarioCpf" name="funcionarioCpf" required></select>
+                </div>
+                <div>
+                    <label for="clienteCpf">Cliente:</label>
+                    <select id="clienteCpf" name="clienteCpf" required></select>
+                </div>
+                <button type="submit">Criar Ordem de Serviço</button>
+            </form>
+        </section>
+
+        <section>
+            <h2>Ordens de Serviço Cadastradas</h2>
+            <table id="ordersTable">
+                <thead>
+                    <tr>
+                        <th>Descrição</th>
+                        <th>Status</th>
+                        <th>Equipamentos</th>
+                        <th>Problema</th>
+                        <th>Serviço</th>
+                        <th>Valor Total</th>
+                        <th>Funcionário</th>
+                        <th>Cliente</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="ordersTableBody"></tbody>
+            </table>
+        </section>
+    </main>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            loadAccounts();
+            loadOrders();
+        });
+
+        const API_URL = "http://127.0.0.1:3000";
+
+        // Carregar funcionários e clientes
+        function loadAccounts() {
+            fetch(`${API_URL}/get-accounts`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        populateSelect("funcionarioCpf", data.data.funcionarios);
+                        populateSelect("clienteCpf", data.data.clientes);
+                    } else {
+                        console.error("Erro ao obter contas:", data.message);
+                    }
+                })
+                .catch(error => console.error("Erro ao carregar contas:", error));
+        }
+
+        function populateSelect(selectId, items) {
+            const selectElement = document.getElementById(selectId);
+            selectElement.innerHTML = '<option value="" disabled selected>Selecione</option>';
+
+            items.forEach(item => {
+                const option = document.createElement("option");
+                option.value = item.cpf;
+                option.textContent = `${item.name} - ${item.cpf}`;
+                selectElement.appendChild(option);
+            });
+        }
+
+        // Criar nova ordem de serviço
+        document.getElementById("createOrderForm").addEventListener("submit", event => {
+            event.preventDefault();
+
+            const ordem = {
+                descricao: document.getElementById("descricao").value,
+                status: document.getElementById("status").value,
+                equipamentos: document.getElementById("equipamentos").value,
+                descricao_problema: document.getElementById("descricaoProblema").value || null,
+                descricao_servico: document.getElementById("descricaoServico").value || null,
+                valor_total: parseFloat(document.getElementById("valorTotal").value) || null,
+                funcionario_cpf: document.getElementById("funcionarioCpf").value,
+                cliente_cpf: document.getElementById("clienteCpf").value
+            };
+
+            fetch(`${API_URL}/create-order`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(ordem)
+            })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    if (data.success) {
+                        loadOrders();
+                        document.getElementById("createOrderForm").reset();
+                    }
+                })
+                .catch(error => console.error("Erro ao criar ordem:", error));
+        });
+
+        // Carregar ordens de serviço
+        function loadOrders() {
+            fetch(`${API_URL}/get-orders`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        populateOrdersTable(data.data);
+                    } else {
+                        console.error("Erro ao carregar ordens:", data.message);
+                    }
+                })
+                .catch(error => console.error("Erro ao carregar ordens:", error));
+        }
+
+        function populateOrdersTable(orders) {
+            const tableBody = document.getElementById("ordersTableBody");
+            tableBody.innerHTML = "";
+
+            orders.forEach(order => {
+                const valorTotal = parseFloat(order.valor_total) || 0; // Garantir que seja um número
+
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${order.descricao}</td>
+                    <td>${order.status}</td>
+                    <td>${order.equipamentos || "N/A"}</td>
+                    <td>${order.descricao_problema || "N/A"}</td>
+                    <td>${order.descricao_servico || "N/A"}</td>
+                    <td>${valorTotal.toFixed(2)}</td> <!-- Valor formatado como número -->
+                    <td>${order.funcionario_name}</td>
+                    <td>${order.cliente_name}</td>
+                    <td>
+                        <button onclick="deleteOrder(${order.id})">Excluir</button>
+                        <button onclick="editOrder(${order.id})">Editar</button> <!-- Botão Editar -->
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+        }
+
+        // Excluir ordem de serviço
+        function deleteOrder(orderId) {
+            fetch(`${API_URL}/delete-order/${orderId}`, { method: "DELETE" })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message);
+                    if (data.success) {
+                        loadOrders();
+                    }
+                })
+                .catch(error => console.error("Erro ao excluir ordem:", error));
+        }
+
+        // Função para redirecionar para a página de edição
+        function editOrder(orderId) {
+            window.location.href = `http://127.0.0.1:5500/public/editar_ordem.html?id=${orderId}`;
+        }
+    </script>
 </body>
 </html>
