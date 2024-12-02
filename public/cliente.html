@@ -11,9 +11,8 @@
         <h1>Gestão de Ordens de Serviço</h1>
         <nav>
             <ul>
-                <li><a href="/dashboard">Início</a></li>
-                <li><a href="/ordens-servico">Ordens de Serviço</a></li>
-                <li><a href="/logout">Sair</a></li>
+
+                <li><a href="login.html">Logout</a></li>
             </ul>
         </nav>
     </header>
@@ -96,13 +95,18 @@
 
         // Função para atualizar o status da ordem de serviço
         function updateOrderStatus(orderId, newStatus) {
-            const API_URL = 'http://127.0.0.1:3000';  
-            fetch(`${API_URL}/update-order/${orderId}`, { // Agora, usamos o orderId passado diretamente
+            const API_URL = 'http://127.0.0.1:3000';
+            const totalValue = (newStatus === 'Concluída') ? 0 : undefined; // Definir o valor total como 0 apenas quando o status for "Concluída"
+
+            fetch(`${API_URL}/update-order/${orderId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({ status: newStatus })
+                body: JSON.stringify({
+                    status: newStatus,
+                    valor_total: totalValue // Enviar o valor total (0 ou não alterado)
+                })
             })
             .then(response => response.json())
             .then(data => {

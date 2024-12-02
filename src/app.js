@@ -251,32 +251,35 @@ app.put('/update-order-status/:id', (req, res) => {
 
 app.put('/update-order/:id', (req, res) => {
     const orderId = req.params.id;
-    console.log(`Requisição PUT recebida para /update-order/${orderId}`); // Verifique se o ID está sendo passado corretamente
-    const { status } = req.body;
+    const { status, valor_total } = req.body;  // Recebe o status e o valor_total
+
+    console.log(`Requisição PUT recebida para /update-order/${orderId}`);
     console.log('Status recebido:', status);
+    console.log('Valor total recebido:', valor_total);
 
     if (!status) {
         return res.status(400).json({ success: false, message: 'Status é obrigatório' });
     }
 
+    // Se o valor total foi enviado, atualize-o também
     const stmt = db.prepare(`
         UPDATE ordem_servico
-        SET status = ?
+        SET status = ?, valor_total = ?
         WHERE id = ?
     `);
 
-    stmt.run(status, orderId, function (err) {
+    stmt.run(status, valor_total !== undefined ? valor_total : null, orderId, function (err) {
         if (err) {
             console.error('Erro ao atualizar ordem:', err);
             return res.status(500).json({ success: false, message: 'Erro ao atualizar ordem de serviço' });
         }
+
         if (this.changes === 0) {
             return res.status(404).json({ success: false, message: 'Ordem não encontrada' });
         }
+
         res.json({ success: true, message: 'Ordem de serviço atualizada com sucesso' });
     });
-
-    stmt.finalize(); // Fechar a instrução após a execução
 });
 
 
